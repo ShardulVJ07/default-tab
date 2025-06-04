@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Enhanced New Tab</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2d3748; }
+        ::-webkit-scrollbar-track { background: #1a202c; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* gray-900 */
+            color: #e2e8f0; /* slate-200 */
+            font-size: 14px;
+        }
+        .widget {
+            background-color: #2d3748; /* gray-800 */
+            border: 1px solid #4a5568; /* gray-700 */
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            transition: all 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+        .widget:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        .widget-title {
+            font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem; color: #94a3b8; /* slate-400 */
+            display: flex; align-items: center;
+        }
+        .widget-title svg { width: 1rem; height: 1rem; margin-right: 0.5rem; }
+        
+        input[type="text"], input[type="url"], input[type="time"], input[type="date"], input[type="number"], textarea, select {
+            background-color: #1e293b; /* slate-800 */ border: 1px solid #334155; /* slate-700 */
+            color: #e2e8f0; /* slate-200 */ border-radius: 0.375rem; padding: 0.5rem;
+            font-size: 0.875rem; width: 100%;
+        }
+        input[type="text"]:focus, input[type="url"]:focus, input[type="time"]:focus, input[type="date"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+            outline: none; border-color: #38bdf8; /* sky-500 */
+            box-shadow: 0 0 0 2px rgba(56,189,248,0.4);
+        }
+        .btn {
+            background-color: #38bdf8; color: #ffffff; padding: 0.5rem 0.75rem; border-radius: 0.375rem;
+            font-size: 0.75rem; font-weight: 500; transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+        .btn:hover { background-color: #0ea5e9; /* sky-600 */ }
+        .btn-secondary { background-color: #4a5568; /* gray-600 */ }
+        .btn-secondary:hover { background-color: #718096; /* gray-500 */ }
+        .btn-danger { background-color: #ef4444; /* red-500 */ }
+        .btn-danger:hover { background-color: #dc2626; /* red-600 */ }
+        .btn-success { background-color: #22c55e; /* green-500 */ }
+        .btn-success:hover { background-color: #16a34a; /* green-600 */ }
+
+        .link-item {
+            display: flex; align-items: center; color: #94a3b8; font-size: 0.875rem;
+            padding: 0.35rem 0.25rem; transition: color 0.2s ease, background-color 0.2s ease;
+            border-radius: 0.25rem; word-break: break-all;
+        }
+        .link-item:hover { color: #38bdf8; background-color: #334155; }
+        .link-item img, .link-item .favicon-default { width: 16px; height: 16px; margin-right: 0.5rem; border-radius: 2px; }
+        
+        .todo-item, .schedule-item, .habit-item {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 0.875rem; padding: 0.4rem 0.2rem; border-bottom: 1px solid #334155;
+        }
+        .todo-item.completed span, .schedule-item.completed span, .habit-item.completed span {
+            text-decoration: line-through; color: #64748b; /* slate-500 */
+        }
+/* Checkbox styling */
+.todo-item input[type="checkbox"], 
+.schedule-item input[type="checkbox"], 
+.habit-item input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: 1rem;
+    height: 1rem;
+    -webkit-appearance: none; /* Remove default browser styling for Safari */
+    -moz-appearance: none;    /* Remove default browser styling for Firefox */
+    appearance: none;         /* Remove default browser styling */
+    background-color: #000; /* Black background for unchecked state */
+    border: 1px solid #000; /* Black border for unchecked state */
+    border-radius: 0.25rem; /* Slightly rounded corners */
+    cursor: pointer;
+    display: inline-block;
+    vertical-align: middle;
+    position: relative; /* Needed for custom checkmark */
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.todo-item input[type="checkbox"]:checked, 
+.schedule-item input[type="checkbox"]:checked, 
+.habit-item input[type="checkbox"]:checked {
+    background-color: #38bdf8; /* Blue background for checked state */
+    border-color: #38bdf8; /* Blue border for checked state */
+}
+
+/* Custom checkmark for checked state */
+.todo-item input[type="checkbox"]:checked::after, 
+.schedule-item input[type="checkbox"]:checked::after, 
+.habit-item input[type="checkbox"]:checked::after {
+    content: '✓'; /* Unicode checkmark character */
+    font-size: 0.8rem;
+    color: #1a202c; /* Dark color for checkmark to contrast with blue background */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Center the checkmark */
+    line-height: 1; /* Adjust line height for better vertical centering */
+}
+        .delete-btn {
+            background: none; border: none; color: #cbd5e1; /* slate-300 */ cursor: pointer; padding:0.2rem;
+        }
+        .delete-btn:hover { color: #f87171; /* red-400 */ }
+
+        /* Scratchpad Toolbar */
+        .scratchpad-toolbar { margin-bottom: 0.5rem; display: flex; gap: 0.5rem; }
+        .scratchpad-toolbar button { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+        #scratchpadEditor {
+            min-height: 100px; border: 1px solid #334155; padding: 0.5rem; border-radius: 0.375rem;
+            background-color: #1e293b; color: #e2e8f0; font-size: 0.875rem; flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        /* Pomodoro Timer */
+        #pomodoroDisplay { font-size: 2rem; font-weight: bold; text-align: center; margin: 0.5rem 0; color: #38bdf8; }
+        #pomodoroControls button { margin: 0 0.25rem; }
+
+        /* Mini Calendar */
+        #calendarGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; font-size: 0.75rem;}
+        #calendarGrid div { padding: 4px; border-radius: 2px; }
+        #calendarGrid .day-name { font-weight: bold; color: #94a3b8; }
+        #calendarGrid .current-day { background-color: #38bdf8; color: #1a202c; font-weight: bold; }
+        #calendarGrid .other-month { color: #4a5568; }
+
+        /* Habit Tracker */
+        .habit-item span { flex-grow: 1; }
+
+    </style>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+</head>
+<body class="p-3 sm:p-4 md:p-6">
+
+    <div class="max-w-full mx-auto">
+        <header class="mb-4 flex flex-col sm:flex-row justify-between items-center">
+            <h1 id="greeting" class="text-lg sm:text-xl font-semibold text-slate-100 mb-1 sm:mb-0">Hello!</h1>
+            <div id="dateTime" class="text-xs sm:text-sm text-slate-400"></div>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+
+            <div class="space-y-3 sm:space-y-4">
+                <div class="widget">
+                    <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>Quick Search</h2>
+                    <form action="https://www.google.com/search" method="GET" target="_blank" class="flex space-x-2">
+                        <input type="text" name="q" placeholder="Search Google..." class="flex-grow">
+                        <button type="submit" class="btn">Search</button>
+                    </form>
+                </div>
+
+                <div class="widget">
+                    <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-4.5A3.375 3.375 0 0 0 12.75 9.75H11.25A3.375 3.375 0 0 0 7.5 13.125V18.75m9 0h-9" /></svg>Today's Goal</h2>
+                    <input type="text" id="dailyGoal" placeholder="What's your main focus today?">
+                </div>
+                
+                <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>Pomodoro Timer</h2>
+                    <div id="pomodoroDisplay">25:00</div>
+                    <div id="pomodoroStatus" class="text-xs text-center text-slate-400 mb-2">Work Session</div>
+                    <div id="pomodoroControls" class="flex justify-center space-x-1">
+                        <button id="pomodoroStart" class="btn btn-success text-xs">Start</button>
+                        <button id="pomodoroPause" class="btn btn-secondary text-xs">Pause</button>
+                        <button id="pomodoroReset" class="btn btn-danger text-xs">Reset</button>
+                    </div>
+                </div>
+
+                 <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>Mini Calendar</h2>
+                    <div class="flex justify-between items-center mb-2">
+                        <button id="prevMonthBtn" class="text-xs p-1 hover:bg-slate-700 rounded">&lt;</button>
+                        <div id="currentMonthYear" class="text-xs font-semibold"></div>
+                        <button id="nextMonthBtn" class="text-xs p-1 hover:bg-slate-700 rounded">&gt;</button>
+                    </div>
+                    <div id="calendarGrid"></div>
+                </div>
+            </div>
+
+            <div class="space-y-3 sm:space-y-4">
+                <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" /></svg>Quick Links</h2>
+                    <div id="quickLinksContainer" class="space-y-1 mb-3 max-h-48 overflow-y-auto flex-grow"></div>
+                    <div class="mt-auto pt-2 border-t border-slate-700">
+                        <input type="text" id="newLinkName" placeholder="Link Name" class="mb-1 text-xs">
+                        <input type="url" id="newLinkUrl" placeholder="Link URL (https://...)" class="mb-1 text-xs">
+                        <button id="addLinkBtn" class="btn w-full text-xs">Add Link</button>
+                    </div>
+                </div>
+
+                <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>Scratchpad</h2>
+                    <div class="scratchpad-toolbar">
+                        <button class="btn btn-secondary" onclick="formatDoc('bold')"><b>B</b></button>
+                        <button class="btn btn-secondary" onclick="formatDoc('italic')"><i>I</i></button>
+                        <button class="btn btn-secondary" onclick="formatDoc('underline')"><u>U</u></button>
+                        <input type="color" id="scratchpadColor" class="p-0 h-6 w-8 rounded" onchange="formatDoc('foreColor', this.value)">
+                    </div>
+                    <div id="scratchpadEditor" contenteditable="true" class="text-xs flex-grow"></div>
+                </div>
+            </div>
+
+            <div class="space-y-3 sm:space-y-4">
+                <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>To-Do List</h2>
+                    <div class="flex space-x-2 mb-2">
+                        <input type="text" id="todoInput" placeholder="Add a new task..." class="flex-grow text-xs">
+                        <button id="addTodoBtn" class="btn text-xs">Add</button>
+                    </div>
+                    <div id="todoListContainer" class="max-h-60 overflow-y-auto space-y-1 flex-grow"></div>
+                </div>
+
+                <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5M12 15.75h.007v.008H12v-.008Z" /></svg>Today's Schedule</h2>
+                    <div class="flex space-x-1 mb-2">
+                        <input type="time" id="scheduleTime" class="text-xs">
+                        <input type="text" id="scheduleEvent" placeholder="Event description" class="flex-grow text-xs">
+                        <button id="addScheduleBtn" class="btn text-xs">Add</button>
+                    </div>
+                    <div id="scheduleListContainer" class="max-h-40 overflow-y-auto space-y-1"></div>
+                </div>
+                 <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.354a15.055 15.055 0 0 1-4.5 0m4.5 0V21m-4.5 0V21m0 0a2.25 2.25 0 0 0 4.5 0M12 18.75a9.75 9.75 0 0 1-4.546-1.071L5.454 19.5a2.25 2.25 0 0 1-3.182-3.182l2.121-2.121A9.718 9.718 0 0 1 3 12.375c0-2.09.622-4.014 1.686-5.625L3.182 5.25a2.25 2.25 0 0 1 3.182-3.182l2.121 2.121c1.611-1.064 3.535-1.686 5.625-1.686 2.09 0 4.014.622 5.625 1.686l2.121-2.121a2.25 2.25 0 0 1 3.182 3.182l-1.5 1.5a9.718 9.718 0 0 1 1.686 5.625c0 2.09-.622 4.014-1.686 5.625l1.5 1.5a2.25 2.25 0 0 1-3.182 3.182l-2.121-2.121A9.75 9.75 0 0 1 12 18.75Z" /></svg>Random Fact</h2>
+                    <p id="randomFactDisplay" class="text-xs text-slate-300 italic">Loading fact...</p>
+                    <button id="newFactBtn" class="btn btn-secondary w-full mt-2 text-xs">New Fact</button>
+                </div>
+            </div>
+            
+            <div class="space-y-3 sm:space-y-4">
+                <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-2.138a1.125 1.125 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" /></svg>Quote of the Day</h2>
+                    <p id="quoteDisplay" class="text-sm italic text-slate-300">"Loading quote..."</p>
+                    <p id="quoteAuthor" class="text-xs text-right text-slate-400 mt-1"></p>
+                </div>
+
+                <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" /></svg>Countdown</h2>
+                    <input type="text" id="countdownEventName" placeholder="Event Name (e.g., Birthday)" class="mb-1 text-xs">
+                    <input type="date" id="countdownDate" class="mb-1 text-xs">
+                    <button id="startCountdownBtn" class="btn w-full mb-2 text-xs">Start Countdown</button>
+                    <div id="countdownDisplay" class="text-center text-slate-300 text-sm"></div>
+                </div>
+
+                <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.321h5.385a.563.563 0 0 1 .321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.652 0l-4.725 2.885a.562.562 0 0 1-.84-.61l1.285-5.385a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988h5.385a.563.563 0 0 0 .475-.321L11.48 3.5Z" /></svg>Daily Habits</h2>
+                    <div class="flex space-x-1 mb-2">
+                        <input type="text" id="habitInput" placeholder="New habit..." class="flex-grow text-xs">
+                        <button id="addHabitBtn" class="btn text-xs">Add</button>
+                    </div>
+                    <div id="habitListContainer" class="max-h-40 overflow-y-auto space-y-1"></div>
+                </div>
+
+                <div class="widget"> <h2 class="widget-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h18M16.5 3l4.5 4.5m0 0L16.5 12M21 7.5H3" /></svg>Unit Converter</h2>
+                    <select id="converterType" class="mb-1 text-xs">
+                        <option value="temp">Temperature (C/F)</option>
+                        <option value="weight">Weight (kg/lb)</option>
+                    </select>
+                    <input type="number" id="unitInput" placeholder="Enter value" class="mb-1 text-xs">
+                    <div id="unitOutput" class="text-xs text-slate-300 h-6"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // --- Utility Functions ---
+    const getById = (id) => document.getElementById(id);
+    const querySel = (selector) => document.querySelector(selector);
+    const querySelAll = (selector) => document.querySelectorAll(selector);
+
+    // --- LocalStorage Management ---
+    const saveData = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+    const loadData = (key, defaultValue = null) => {
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : defaultValue;
+    };
+
+    // --- Clock and Greeting ---
+    function updateDateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateString = now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
+        getById('dateTime').textContent = `${timeString} - ${dateString}`;
+        const hours = now.getHours();
+        let greetingText = "Hello!";
+        if (hours < 12) greetingText = "Good Morning!";
+        else if (hours < 18) greetingText = "Good Afternoon!";
+        else greetingText = "Good Evening!";
+        getById('greeting').textContent = greetingText;
+    }
+    setInterval(updateDateTime, 1000);
+    updateDateTime();
+
+    // --- Daily Goal ---
+    const dailyGoalInput = getById('dailyGoal');
+    dailyGoalInput.value = loadData('dailyGoal', '');
+    dailyGoalInput.addEventListener('input', () => saveData('dailyGoal', dailyGoalInput.value));
+
+    // --- Scratchpad ---
+    const scratchpadEditor = getById('scratchpadEditor');
+    scratchpadEditor.innerHTML = loadData('scratchpadContent', '');
+    scratchpadEditor.addEventListener('input', () => saveData('scratchpadContent', scratchpadEditor.innerHTML));
+
+    function formatDoc(command, value = null) {
+        document.execCommand(command, false, value);
+        scratchpadEditor.focus();
+        saveData('scratchpadContent', scratchpadEditor.innerHTML); // Save after formatting
+    }
+    getById('scratchpadColor').addEventListener('input', (e) => {
+        formatDoc('foreColor', e.target.value);
+    });
+
+
+    // --- Quick Links ---
+    const quickLinksContainer = getById('quickLinksContainer');
+    const newLinkNameInput = getById('newLinkName');
+    const newLinkUrlInput = getById('newLinkUrl');
+    const addLinkBtn = getById('addLinkBtn');
+    let quickLinks = loadData('quickLinks', [
+        { name: "Gmail", url: "https://mail.google.com" },
+        { name: "GitHub", url: "https://github.com" },
+    ]);
+
+    function renderQuickLinks() {
+        quickLinksContainer.innerHTML = "";
+        quickLinks.forEach((link, index) => {
+            const linkDiv = document.createElement('div');
+            linkDiv.classList.add('link-item');
+            
+            const favicon = document.createElement('img');
+            favicon.src = `https://www.google.com/s2/favicons?sz=32&domain_url=${link.url}`;
+            favicon.alt = "favicon";
+            favicon.onerror = function() { // Fallback
+                this.style.display = 'none';
+                const defaultIcon = document.createElement('span');
+                defaultIcon.textContent = '🔗'; // Default link emoji
+                defaultIcon.classList.add('favicon-default');
+                linkDiv.insertBefore(defaultIcon, linkText);
+            };
+
+            const linkText = document.createElement('a');
+            linkText.href = link.url;
+            linkText.textContent = link.name;
+            linkText.target = "_blank";
+            linkText.classList.add("flex-grow", "truncate");
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>';
+            deleteBtn.classList.add('delete-btn', 'ml-2', 'flex-shrink-0');
+            deleteBtn.onclick = () => deleteQuickLink(index);
+
+            linkDiv.appendChild(favicon);
+            linkDiv.appendChild(linkText);
+            linkDiv.appendChild(deleteBtn);
+            quickLinksContainer.appendChild(linkDiv);
+        });
+    }
+
+    function addQuickLink() {
+        const name = newLinkNameInput.value.trim();
+        let url = newLinkUrlInput.value.trim();
+        if (name && url) {
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            quickLinks.push({ name, url });
+            saveData('quickLinks', quickLinks);
+            renderQuickLinks();
+            newLinkNameInput.value = "";
+            newLinkUrlInput.value = "";
+        }
+    }
+    addLinkBtn.addEventListener('click', addQuickLink);
+    newLinkUrlInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addQuickLink(); });
+
+
+    function deleteQuickLink(index) {
+        quickLinks.splice(index, 1);
+        saveData('quickLinks', quickLinks);
+        renderQuickLinks();
+    }
+    renderQuickLinks();
+
+    // --- To-Do List ---
+    const todoInput = getById('todoInput');
+    const addTodoBtn = getById('addTodoBtn');
+    const todoListContainer = getById('todoListContainer');
+    let todos = loadData('todos', []);
+
+    function renderTodos() {
+        todoListContainer.innerHTML = "";
+        todos.forEach((todo, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('todo-item');
+            if (todo.completed) itemDiv.classList.add('completed');
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = todo.completed;
+            checkbox.onchange = () => toggleTodo(index);
+
+            const span = document.createElement('span');
+            span.textContent = todo.text;
+            span.classList.add("flex-grow", "px-1", "truncate");
+
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.111 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>';
+            deleteBtn.classList.add('delete-btn', 'ml-1');
+            deleteBtn.onclick = () => deleteTodo(index);
+            
+            const contentWrapper = document.createElement('div');
+            contentWrapper.classList.add('flex', 'items-center', 'flex-grow', 'min-w-0'); // For truncation
+            contentWrapper.appendChild(checkbox);
+            contentWrapper.appendChild(span);
+
+            itemDiv.appendChild(contentWrapper);
+            itemDiv.appendChild(deleteBtn);
+            todoListContainer.appendChild(itemDiv);
+        });
+    }
+    function addTodo() {
+        const text = todoInput.value.trim();
+        if (text) {
+            todos.push({ text, completed: false });
+            saveData('todos', todos);
+            renderTodos();
+            todoInput.value = "";
+        }
+    }
+    addTodoBtn.addEventListener('click', addTodo);
+    todoInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTodo(); });
+    function toggleTodo(index) {
+        todos[index].completed = !todos[index].completed;
+        saveData('todos', todos);
+        renderTodos();
+    }
+    function deleteTodo(index) {
+        todos.splice(index, 1);
+        saveData('todos', todos);
+        renderTodos();
+    }
+    renderTodos();
+
+    // --- Quotes ---
+    const quotes = [
+
+  { "text": "The only way to do great work is to love what you do.", "author": "Steve Jobs" },
+  { "text": "Strive not to be a success, but rather to be of value.", "author": "Albert Einstein" },
+  { "text": "The mind is everything. What you think you become.", "author": "Buddha" },
+  { "text": "Your time is limited, so don't waste it living someone else's life.", "author": "Steve Jobs" },
+  { "text": "The best way to predict the future is to create it.", "author": "Peter Drucker" },
+  { "text": "The future belongs to those who believe in the beauty of their dreams.", "author": "Eleanor Roosevelt" },
+  { "text": "It is during our darkest moments that we must focus to see the light.", "author": "Aristotle" },
+  { "text": "Believe you can and you're halfway there.", "author": "Theodore Roosevelt" },
+  { "text": "The only impossible journey is the one you never begin.", "author": "Tony Robbins" },
+  { "text": "Success is not final, failure is not fatal: It is the courage to continue that counts.", "author": "Winston Churchill" },
+  { "text": "The greatest glory in living lies not in never falling, but in rising every time we fall.", "author": "Nelson Mandela" },
+  { "text": "Life is what happens when you're busy making other plans.", "author": "John Lennon" },
+  { "text": "The secret of getting ahead is getting started.", "author": "Mark Twain" },
+  { "text": "The only true wisdom is in knowing you know nothing.", "author": "Socrates" },
+  { "text": "Don't count the days, make the days count.", "author": "Muhammad Ali" },
+  { "text": "It does not matter how slowly you go as long as you do not stop.", "author": "Confucius" },
+  { "text": "We are what we repeatedly do. Excellence, then, is not an act, but a habit.", "author": "Aristotle" },
+  { "text": "The greatest wealth is health.", "author": "Virgil" },
+  { "text": "If you want to live a happy life, tie it to a goal, not to people or things.", "author": "Albert Einstein" },
+  { "text": "The unexamined life is not worth living.", "author": "Socrates" },
+  { "text": "What you get by achieving your goals is not as important as what you become by achieving your goals.", "author": "Zig Ziglar" },
+  { "text": "Happiness is not something ready-made. It comes from your own actions.", "author": "Dalai Lama XIV" },
+  { "text": "The journey of a thousand miles begins with a single step.", "author": "Lao Tzu" },
+  { "text": "Innovation distinguishes between a leader and a follower.", "author": "Steve Jobs" },
+  { "text": "Logic will get you from A to B. Imagination will take you everywhere.", "author": "Albert Einstein" },
+  { "text": "Nothing is impossible, the word itself says 'I'm possible'!", "author": "Audrey Hepburn" },
+  { "text": "The only way to do great work is to love what you do.", "author": "Steve Jobs" },
+  { "text": "Success is walking from failure to failure with no loss of enthusiasm.", "author": "Winston Churchill" },
+  { "text": "The best revenge is massive success.", "author": "Frank Sinatra" },
+  { "text": "Twenty years from now you will be more disappointed by the things that you didn't do than by the ones you did do.", "author": "Mark Twain" },
+  { "text": "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.", "author": "Ralph Waldo Emerson" },
+  { "text": "The mind is everything. What you think you become.", "author": "Buddha" },
+  { "text": "The secret of change is to focus all of your energy not on fighting the old, but on building the new.", "author": "Socrates" },
+  { "text": "The power of imagination makes us infinite.", "author": "John Muir" },
+  { "text": "Do one thing every day that scares you.", "author": "Eleanor Roosevelt" },
+  { "text": "What we achieve inwardly will change outer reality.", "author": "Plutarch" },
+  { "text": "Challenges are what make life interesting and overcoming them is what makes life meaningful.", "author": "Joshua J. Marine" },
+  { "text": "If you are not willing to risk the usual, you will have to settle for the ordinary.", "author": "Jim Rohn" },
+  { "text": "Great minds discuss ideas; average minds discuss events; small minds discuss people.", "author": "Eleanor Roosevelt" },
+  { "text": "The only way to do great work is to love what you do.", "author": "Steve Jobs" },
+  { "text": "Imagination is more important than knowledge.", "author": "Albert Einstein" },
+  { "text": "It is our choices, Harry, that show what we truly are, far more than our abilities.", "author": "J.K. Rowling" },
+  { "text": "The best way to find yourself is to lose yourself in the service of others.", "author": "Mahatma Gandhi" },
+  { "text": "The only person you are destined to become is the person you decide to be.", "author": "Ralph Waldo Emerson" },
+  { "text": "Believe you can and you're halfway there.", "author": "Theodore Roosevelt" },
+  { "text": "Your work is going to fill a large part of your life, and the only way to be truly satisfied is to do what you believe is great work.", "author": "Steve Jobs" },
+  { "text": "Try not to become a man of success, but rather try to become a man of value.", "author": "Albert Einstein" },
+  { "text": "The best way to predict the future is to create it.", "author": "Peter Drucker" },
+  { "text": "Either write something worth reading or do something worth writing.", "author": "Benjamin Franklin" },
+  { "text": "The only source of knowledge is experience.", "author": "Albert Einstein" },
+  { "text": "A leader is one who knows the way, goes the way, and shows the way.", "author": "John C. Maxwell" },
+  { "text": "The only true wisdom is in knowing you know nothing.", "author": "Socrates" },
+  { "text": "Darkness cannot drive out darkness; only light can do that. Hate cannot drive out hate; only love can do that.", "author": "Martin Luther King Jr." },
+  { "text": "We can't help everyone, but everyone can help someone.", "author": "Ronald Reagan" },
+  { "text": "What you do today can improve all your tomorrows.", "author": "Ralph Marston" },
+  { "text": "If you want to lift yourself up, lift up someone else.", "author": "Booker T. Washington" },
+  { "text": "The greatest discovery of all time is that a person can change his future by merely changing his attitude.", "author": "Oprah Winfrey" },
+  { "text": "Always bear in mind that your own resolution to succeed is more important than any one thing.", "author": "Abraham Lincoln" },
+  { "text": "The starting point of all achievement is desire.", "author": "Napoleon Hill" },
+  { "text": "Success is not the key to happiness. Happiness is the key to success. If you love what you are doing, you will be successful.", "author": "Albert Schweitzer" },
+  { "text": "Don't be afraid to give up the good to go for the great.", "author": "John D. Rockefeller" },
+  { "text": "The road to success and the road to failure are almost exactly the same.", "author": "Colin R. Davis" },
+  { "text": "The only way to do great work is to love what you do.", "author": "Steve Jobs" },
+  { "text": "What lies behind us and what lies before us are tiny matters compared to what lies within us.", "author": "Ralph Waldo Emerson" },
+  { "text": "The future belongs to those who prepare for it today.", "author": "Malcolm X" },
+  { "text": "To improve is to change; to be perfect is to change often.", "author": "Winston Churchill" },
+  { "text": "I find that the harder I work, the more luck I seem to have.", "author": "Thomas Jefferson" },
+  { "text": "The mind is everything. What you think you become.", "author": "Buddha" },
+  { "text": "Setting goals is the first step in turning the invisible into the visible.", "author": "Tony Robbins" },
+  { "text": "Perfection is not attainable, but if we chase perfection we can catch excellence.", "author": "Vince Lombardi" },
+  { "text": "Our greatest weakness lies in giving up. The most certain way to succeed is always to try just one more time.", "author": "Thomas A. Edison" },
+  { "text": "The best preparation for tomorrow is doing your best today.", "author": "H. Jackson Brown Jr." },
+  { "text": "We become what we think about.", "author": "Earl Nightingale" },
+  { "text": "The greater the artist, the greater the doubt. Perfect confidence is granted to the less talented as a consolation prize.", "author": "Robert Hughes" },
+  { "text": "If you want to achieve greatness stop asking for permission.", "author": "Anonymous" },
+  { "text": "Things work out best for those who make the best of how things work out.", "author": "John Wooden" },
+  { "text": "To live is the rarest thing in the world. Most people exist, that is all.", "author": "Oscar Wilde" },
+  { "text": "The only way to do great work is to love what you do.", "author": "Steve Jobs" },
+  { "text": "Life is 10% what happens to you and 90% how you react to it.", "author": "Charles R. Swindoll" },
+  { "text": "If you can dream it, you can achieve it.", "author": "Zig Ziglar" },
+  { "text": "The mind is everything. What you think you become.", "author": "Buddha" },
+  { "text": "You are never too old to set another goal or to dream a new dream.", "author": "C.S. Lewis" },
+  { "text": "It always seems impossible until it's done.", "author": "Nelson Mandela" },
+  { "text": "Success usually comes to those who are too busy to be looking for it.", "author": "Henry David Thoreau" },
+  { "text": "Opportunities don't happen, you create them.", "author": "Chris Grosser" },
+  { "text": "To be successful, you must accept all challenges that come your way. You can't just accept the ones you like.", "author": "Mike Gafka" },
+  { "text": "The only way to do great work is to love what you do.", "author": "Steve Jobs" },
+  { "text": "If you are not willing to learn, no one can help you. If you are determined to learn, no one can stop you.", "author": "Zig Ziglar" },
+  { "text": "The big secret in life is that there is no big secret. Whatever your goal, you can get there if you're willing to work.", "author": "Oprah Winfrey" },
+  { "text": "Believe in yourself and all that you are. Know that there is something inside you that is greater than any obstacle.", "author": "Christian D. Larson" },
+  { "text": "The best way to find yourself is to lose yourself in the service of others.", "author": "Mahatma Gandhi" },
+  { "text": "Start where you are. Use what you have. Do what you can.", "author": "Arthur Ashe" },
+  { "text": "It's not whether you get knocked down, it's whether you get up.", "author": "Vince Lombardi" },
+  { "text": "The only way to do great work is to love what you do.", "author": "Steve Jobs" },
+  { "text": "The mind is everything. What you think you become.", "author": "Buddha" },
+  { "text": "Your time is limited, so don't waste it living someone else's life.", "author": "Steve Jobs" },
+  { "text": "The best way to predict the future is to create it.", "author": "Peter Drucker" },
+  { "text": "The future belongs to those who believe in the beauty of their dreams.", "author": "Eleanor Roosevelt" },
+  { "text": "It is during our darkest moments that we must focus to see the light.", "author": "Aristotle" },
+  { "text": "Believe you can and you're halfway there.", "author": "Theodore Roosevelt" },
+  { "text": "The only impossible journey is the one you never begin.", "author": "Tony Robbins" },
+  { "text": "Success is not final, failure is not fatal: It is the courage to continue that counts.", "author": "Winston Churchill" },
+  { "text": "The greatest glory in living lies not in never falling, but in rising every time we fall.", "author": "Nelson Mandela" }
+
+    ];
+    function displayRandomQuote() {
+        const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+        getById('quoteDisplay').textContent = `"${randomQuote.text}"`;
+        getById('quoteAuthor').textContent = `- ${randomQuote.author}`;
+    }
+    displayRandomQuote();
+    getById('quoteDisplay').parentElement.addEventListener('click', displayRandomQuote);
+
+
+    // --- Pomodoro Timer ---
+    const pomodoroDisplay = getById('pomodoroDisplay');
+    const pomodoroStatus = getById('pomodoroStatus');
+    const pomodoroStartBtn = getById('pomodoroStart');
+    const pomodoroPauseBtn = getById('pomodoroPause');
+    const pomodoroResetBtn = getById('pomodoroReset');
+    let pomodoroInterval;
+    let pomodoroTime = loadData('pomodoroTime', 25 * 60); // 25 minutes
+    let pomodoroCurrentSession = loadData('pomodoroSession', 'Work'); // Work, ShortBreak, LongBreak
+    let pomodoroIsRunning = false;
+    const workDuration = 25 * 60;
+    const shortBreakDuration = 5 * 60;
+    const longBreakDuration = 15 * 60;
+    let pomodoroCycles = loadData('pomodoroCycles', 0);
+
+    function updatePomodoroDisplay() {
+        const minutes = Math.floor(pomodoroTime / 60);
+        const seconds = pomodoroTime % 60;
+        pomodoroDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        pomodoroStatus.textContent = `${pomodoroCurrentSession} Session (${pomodoroCycles + 1}/4)`;
+    }
+
+    function startPomodoro() {
+        if (pomodoroIsRunning) return;
+        pomodoroIsRunning = true;
+        pomodoroInterval = setInterval(() => {
+            pomodoroTime--;
+            if (pomodoroTime < 0) {
+                clearInterval(pomodoroInterval);
+                pomodoroIsRunning = false;
+                // Play sound (optional, requires audio file or Web Audio API)
+                // alert(`${pomodoroCurrentSession} session ended!`); 
+                if (pomodoroCurrentSession === 'Work') {
+                    pomodoroCycles++;
+                    if (pomodoroCycles % 4 === 0) {
+                        pomodoroCurrentSession = 'LongBreak';
+                        pomodoroTime = longBreakDuration;
+                    } else {
+                        pomodoroCurrentSession = 'ShortBreak';
+                        pomodoroTime = shortBreakDuration;
+                    }
+                } else { // Break ended
+                    pomodoroCurrentSession = 'Work';
+                    pomodoroTime = workDuration;
+                }
+                saveData('pomodoroCycles', pomodoroCycles);
+                startPomodoro(); // Auto-start next session
+            }
+            saveData('pomodoroTime', pomodoroTime);
+            saveData('pomodoroSession', pomodoroCurrentSession);
+            updatePomodoroDisplay();
+        }, 1000);
+    }
+
+    pomodoroStartBtn.addEventListener('click', startPomodoro);
+    pomodoroPauseBtn.addEventListener('click', () => {
+        clearInterval(pomodoroInterval);
+        pomodoroIsRunning = false;
+    });
+    pomodoroResetBtn.addEventListener('click', () => {
+        clearInterval(pomodoroInterval);
+        pomodoroIsRunning = false;
+        pomodoroCurrentSession = 'Work';
+        pomodoroTime = workDuration;
+        pomodoroCycles = 0;
+        saveData('pomodoroTime', pomodoroTime);
+        saveData('pomodoroSession', pomodoroCurrentSession);
+        saveData('pomodoroCycles', pomodoroCycles);
+        updatePomodoroDisplay();
+    });
+    updatePomodoroDisplay(); // Initial display
+
+    // --- Today's Schedule ---
+    const scheduleTimeInput = getById('scheduleTime');
+    const scheduleEventInput = getById('scheduleEvent');
+    const addScheduleBtn = getById('addScheduleBtn');
+    const scheduleListContainer = getById('scheduleListContainer');
+    let scheduleItems = loadData('scheduleItems', []);
+
+    function renderSchedule() {
+        scheduleListContainer.innerHTML = "";
+        scheduleItems.sort((a,b) => a.time.localeCompare(b.time)); // Sort by time
+        scheduleItems.forEach((item, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('schedule-item');
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.textContent = item.time;
+            timeSpan.classList.add('font-semibold', 'text-sky-400', 'mr-2');
+
+            const eventSpan = document.createElement('span');
+            eventSpan.textContent = item.event;
+            eventSpan.classList.add('flex-grow');
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.111 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>';
+            deleteBtn.classList.add('delete-btn', 'ml-2');
+            deleteBtn.onclick = () => deleteScheduleItem(index);
+
+            itemDiv.appendChild(timeSpan);
+            itemDiv.appendChild(eventSpan);
+            itemDiv.appendChild(deleteBtn);
+            scheduleListContainer.appendChild(itemDiv);
+        });
+    }
+    function addScheduleItem() {
+        const time = scheduleTimeInput.value;
+        const event = scheduleEventInput.value.trim();
+        if (time && event) {
+            scheduleItems.push({ time, event });
+            saveData('scheduleItems', scheduleItems);
+            renderSchedule();
+            scheduleEventInput.value = "";
+        }
+    }
+    addScheduleBtn.addEventListener('click', addScheduleItem);
+    renderSchedule();
+    function deleteScheduleItem(index) {
+        scheduleItems.splice(index, 1);
+        saveData('scheduleItems', scheduleItems);
+        renderSchedule();
+    }
+
+    // --- Mini Calendar ---
+    const calendarGrid = getById('calendarGrid');
+    const currentMonthYearDisplay = getById('currentMonthYear');
+    const prevMonthBtn = getById('prevMonthBtn');
+    const nextMonthBtn = getById('nextMonthBtn');
+    let calendarDate = new Date();
+
+    function renderCalendar() {
+        calendarGrid.innerHTML = '';
+        const year = calendarDate.getFullYear();
+        const month = calendarDate.getMonth();
+        currentMonthYearDisplay.textContent = `${calendarDate.toLocaleString('default', { month: 'long' })} ${year}`;
+
+        const firstDayOfMonth = new Date(year, month, 1).getDay(); // 0=Sun, 1=Mon...
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        dayNames.forEach(name => {
+            const dayNameCell = document.createElement('div');
+            dayNameCell.classList.add('day-name');
+            dayNameCell.textContent = name;
+            calendarGrid.appendChild(dayNameCell);
+        });
+
+        for (let i = 0; i < firstDayOfMonth; i++) { // Empty cells for previous month
+            const emptyCell = document.createElement('div');
+            calendarGrid.appendChild(emptyCell);
+        }
+
+        const today = new Date();
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayCell = document.createElement('div');
+            dayCell.textContent = day;
+            if (day === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                dayCell.classList.add('current-day');
+            }
+            calendarGrid.appendChild(dayCell);
+        }
+    }
+    prevMonthBtn.addEventListener('click', () => {
+        calendarDate.setMonth(calendarDate.getMonth() - 1);
+        renderCalendar();
+    });
+    nextMonthBtn.addEventListener('click', () => {
+        calendarDate.setMonth(calendarDate.getMonth() + 1);
+        renderCalendar();
+    });
+    renderCalendar();
+
+    // --- Random Fact ---
+    const randomFactDisplay = getById('randomFactDisplay');
+    const newFactBtn = getById('newFactBtn');
+const facts = [
+  "Honey never spoils. 🍯",
+  "A flock of crows is called a murder. 🐦‍⬛",
+  "Bananas are berries, but strawberries aren't. 🍓🍌",
+  "The unicorn is the national animal of Scotland. 🦄🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "An octopus has three hearts. 🐙❤️",
+  "There are more stars in the universe than grains of sand on all the Earth's beaches. ⭐🏖️",
+  "A day on Venus is longer than a year on Venus. ☀️⏳",
+  "Butterflies taste with their feet. 🦋🦶",
+  "A group of owls is called a parliament. 🦉🏛️",
+  "It is impossible for most people to lick their own elbow. 👅💪",
+  "The Earth's deepest spot is the Mariana Trench. 🌊 глубины",
+  "The shortest war in history lasted 38 to 45 minutes. ⚔️⏱️",
+  "The human nose can remember 50,000 different scents. 👃🌸",
+  "The average person walks the equivalent of five times around the world in their lifetime. 🚶‍♀️🌍",
+  "Hawaii is the only US state that grows coffee. ☕🌴",
+  "A 'jiffy' is an actual unit of time: 1/100th of a second. ⚡",
+  "The strongest muscle in the human body is the masseter (jaw muscle). 🏋️‍♂️😬",
+  "Polar bears are left-handed. 🐻‍❄️✋",
+  "No word in the English language rhymes with orange. 🍊",
+  "The total weight of all the ants on Earth is estimated to be equal to the total weight of all humans. 🐜⚖️🧍",
+  "Hot water will turn into ice faster than cold water. ♨️🧊",
+  "The Great Wall of China is not visible from space with the naked eye. 🧱🌌",
+  "Sloths can hold their breath longer than dolphins. 🦥🐬",
+  "The longest recorded flight of a chicken is 13 seconds. 🐔✈️",
+  "It is illegal to own just one guinea pig in Switzerland. 🇨🇭🐹",
+  "The smell of freshly cut grass is actually a plant distress call. 🌿🚨",
+  "A crocodile cannot stick its tongue out. 🐊👅",
+  "The national anthem of Spain has no words. 🇪🇸🎶",
+  "Cows have best friends. 🐄👯‍♀️",
+  "A bolt of lightning is five times hotter than the surface of the sun. ⚡☀️",
+  "The human brain weighs about 3 pounds but uses 20% of the body's oxygen and calories. 🧠💨🍎",
+  "The world's largest desert is Antarctica. ❄️🏜️",
+  "Octopuses have a donut-shaped brain. 🍩🐙",
+  "A group of ferrets is called a business. 💼🐾",
+  "The longest place name in the world is 85 letters long. 🔡🌍",
+  "Humans are the only animals that blush. ☺️",
+  "The tiny pocket above the right front pocket on a pair of jeans was originally designed for pocket watches. 👖🕰️",
+  "The average cloud weighs about 1.1 million pounds. ☁️⚖️",
+  "The word 'hello' was originally a greeting to call attention, not to say hi. 👋📢",
+  "A jellyfish is 95% water. 💧🌊",
+  "The fingerprints of a koala are so indistinguishable from humans that they have been confused at crime scenes. 🐨🔍",
+  "There are more permutations of a deck of 52 cards than atoms on Earth. 🃏⚛️",
+  "Flamingos can only eat with their heads upside down.  upside down 🦩⬇️",
+  "Some fungi can create zombies. 🍄🧟",
+  "The world's oldest piece of chewing gum is 9,000 years old. 🍬🕰️",
+  "You cannot hum while holding your nose. 👃🔇",
+  "The only letter that doesn't appear in the periodic table is J. 🧪🔤",
+  "A group of rhinos is called a crash. 💥🦏",
+  "The strongest natural fiber in the world is spider silk. 🕷️🕸️",
+  "There are more fake flamingos in the world than real ones. 🦩 Statues",
+  "The sound of a duck's quack does not echo, and no one knows why. 🦆 reverberation",
+  "Mount Everest grows by about 4 millimeters a year. ⛰️⬆️",
+  "The average person spends six months of their life waiting for red lights to turn green. 🚦⏳",
+  "Banging your head against a wall for one hour burns 150 calories. 🧱🤕",
+  "The longest time between two births of twins is 87 days. 👶👶",
+  "Chewing gum while peeling onions will keep you from crying. 🧅😢",
+  "The total number of bacteria in a person's body is greater than the total number of human cells. 🦠👤",
+  "A snail can sleep for three years. 🐌😴",
+  "The oldest known animal is a 507-year-old clam. 🐚🕰️",
+  "Armadillos are the only other mammals besides humans that can contract leprosy. 🦔🩺",
+  "The Great Barrier Reef is the largest living structure on Earth. 🐠🌍",
+  "Humans are the only animals that cry emotional tears. 😭",
+  "A chameleon's tongue is twice as long as its body. 🦎👅",
+  "The world's quietest room is at Microsoft's headquarters in Redmond, Washington. 🤫🎧",
+  "The average American will eat about 35,000 cookies in their lifetime. 🍪😋",
+  "A group of pugs is called a grumble. 🐶😠",
+  "The word 'strengths' is the longest word in the English language with only one vowel. 💪🔤",
+  "Dolphins sleep with one eye open. 🐬👁️",
+  "The unicorn is the national animal of Scotland. 🦄🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "The first alarm clock could only ring at 4 AM. ⏰ 새벽",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The shortest complete sentence in the English language is 'I am.' ✍️",
+  "The highest mountain in the solar system is on Mars. ⛰️🪐",
+  "The moon is slowly moving away from Earth. 🌕➡️🌍",
+  "The average human head contains 100,000 hairs. 💇‍♀️",
+  "A group of porcupines is called a prickle. 🦔⚠️",
+  "The word 'queue' is the only word in the English language with five consecutive vowels. 🔠",
+  "The only continent with no active volcanoes is Australia. 🌋🇦🇺",
+  "The smell of rain is called petrichor. 🌧️👃",
+  "A cat's urine glows under a black light. 🐈‍⬛💡",
+  "The largest recorded snowflake was 15 inches wide and 8 inches thick. ❄️📏",
+  "Ketchup was once sold as medicine. 🍅💊",
+  "There are more possible iterations of a game of chess than atoms in the known universe. ♟️⚛️",
+  "Giraffes clean their ears with their 21-inch tongues. 🦒👂",
+  "It takes about 8 minutes for light from the sun to reach Earth. ☀️⏱️",
+  "Some worms can eat through plastic. 🐛♻️",
+  "The human heart can create enough pressure to squirt blood 30 feet. ❤️🩸",
+  "The average lifespan of a single red blood cell is 120 days. 🩸⏳",
+  "More people are killed by donkeys annually than by plane crashes. 🐴✈️",
+  "The longest recorded case of hiccups lasted 68 years. 😩🕰️",
+  "The deepest point in the ocean is deeper than Mount Everest is tall. 🌊⛰️",
+  "There are more than 1,000 different types of bats in the world. 🦇🌍",
+  "A group of crows is called a murder. 🐦‍⬛",
+  "The only food that doesn't spoil is honey. 🍯",
+  "You cannot fold a piece of paper in half more than 7 times. 📄🚫",
+  "The average person blinks 15-20 times per minute. 👀",
+  "The Earth is not a perfect sphere; it bulges at the equator. 🌍 bulging",
+  "The average person laughs 15 times a day. 😂",
+  "A group of unicorns is called a blessing. 🦄✨",
+  "The strongest animal on Earth is the dung beetle. 🪲💪",
+  "The first computer mouse was made of wood. 🖱️🌳",
+  "The average person will eat 8 spiders in their lifetime while they are sleeping. 🕷️😴",
+  "A cat has 32 muscles in each ear. 👂🐈",
+  "The Hawaiian alphabet has only 12 letters. 🌺🔤",
+  "The largest ever recorded hailstone weighed over 1 pound. 🧊⚖️",
+  "The Earth is the only planet not named after a god. 🌍🪐",
+  "The only letter in the alphabet that doesn't appear in any US state name is Q. 🇺🇸🔤",
+  "A pregnant goldfish is called a twit. 🐠 expectant",
+  "The shortest amount of time between two earthquakes on Earth is 1 second. 🌎 tremor",
+  "A group of highly intelligent dolphins is called a pod. 🐬🧠",
+  "The only continent without reptiles is Antarctica. 🚫🐍🧊",
+  "The average person spends about 2 weeks of their life kissing. 💋⏳",
+  "The oldest known living tree is over 5,000 years old. 🌳🕰️",
+  "The human brain can hold 2.5 petabytes of data. 🧠💾",
+  "The longest word in the English language is 'pneumonoultramicroscopicsilicovolcanoconiosis'. 🗣️",
+  "A group of jellyfish is called a smack. 🦑 👋",
+  "The sun is so large that it could fit 1.3 million Earths inside it. ☀️🌍",
+  "The average person will walk the equivalent of 70,000 miles in their lifetime. 🚶‍♂️🛣️",
+  "The only bird that can fly backward is the hummingbird. 🐦‍💫⏪",
+  "The world's largest snowflake on record was 15 inches wide. ❄️📏",
+  "The human eye can distinguish about 10 million different colors. 🌈👁️",
+  "A group of squirrels is called a scurry. 🐿️💨",
+  "The first car to break the sound barrier was a rocket-powered vehicle. 🚗💥",
+  "The average person checks their phone 110 times a day. 📱👀",
+  "The Earth's core is as hot as the sun's surface. 🌋☀️",
+  "The shortest war in history lasted 38 minutes. ⚔️⏱️",
+  "A 'google' is a number with 100 zeros. 💯🔢",
+  "The only mammal that can truly fly is the bat. 🦇✈️",
+  "The total length of all the blood vessels in the human body is about 60,000 miles. 🩸🛣️",
+  "A group of lemurs is called a conspiracy. 🐒🕵️‍♀️",
+  "The average cloud weighs as much as 100 elephants. 🐘☁️",
+  "The longest river in the world is the Nile. 🏞️",
+  "The only country that doesn't have a single mosquito is Iceland. 🇮🇸🚫🦟",
+  "The average person will consume 100 pounds of chocolate in their lifetime. 🍫😋",
+  "A group of bears is called a sleuth or a sloth. 🐻🕵️‍♀️",
+  "The highest temperature ever recorded on Earth was 134°F (56.7°C) in Death Valley, California. 🥵🏜️",
+  "The average person will spend 6 years of their life dreaming. 😴💭",
+  "The only animal that can't jump is the elephant. 🐘🚫",
+  "The largest known living organism is a fungus covering 2,200 acres in Oregon. 🍄🌲",
+  "A group of owls is called a parliament. 🦉🏛️",
+  "The average person has about 100,000 hairs on their head. 💇‍♀️",
+  "The world's largest pyramid is not in Egypt, but in Cholula, Mexico. 🇲🇽🔺",
+  "The only state in the United States that shares a border with only one other state is Maine. 🇺🇸🌳",
+  "The average person will walk 100,000 miles in their lifetime. 🚶‍♂️🛣️",
+  "A group of hippos is called a bloat. 🦛 bloated",
+  "The only bird that can truly fly backward is the hummingbird. 🐦‍💫⏪",
+  "The human body contains enough iron to make a 3-inch nail. 💅",
+  "The average person will spend 2 weeks of their life waiting for traffic lights to change. 🚦⏳",
+  "A group of alligators is called a congregation. 🐊⛪",
+  "The shortest street in the world is Ebenezer Place in Wick, Scotland. 🚶‍♀️🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "The human brain can generate about 23 watts of power when awake. 🧠⚡",
+  "A group of flamingos is called a flamboyance. 🦩✨",
+  "The average person will spend 6 months of their life waiting for red lights. 🚦⏳",
+  "The sun is actually white, but appears yellow due to the Earth's atmosphere. ☀️⚪🟡",
+  "The only planet that spins clockwise is Venus. 🪐🔄",
+  "A group of kangaroos is called a mob. 🦘👨‍👩‍👧‍👦",
+  "The average person says 'bless you' after a sneeze 1,000 times in their lifetime. 🙏🤧",
+  "The highest recorded temperature on Earth was 134 degrees Fahrenheit. 🥵🔥",
+  "A group of ravens is called an unkindness. 🐦‍⬛💔",
+  "The average person will eat 12 pounds of potato chips in their lifetime. 🥔🍟",
+  "The only letter that doesn't appear in any US state name is Q. 🇺🇸🔤",
+  "A group of giraffes is called a tower. 🦒🗼",
+  "The average person will spend 38 days of their life showering. 🚿⏳",
+  "The highest waterfall in the world is Angel Falls in Venezuela. 🇻🇪🌊",
+  "A group of parrots is called a pandemonium. 🦜🤯",
+  "The average person will consume 100,000 calories from pizza in their lifetime. 🍕😋",
+  "The only country that doesn't use the metric system is the United States, Liberia, and Myanmar. 📏🇺🇸🇱🇷🇲🇲",
+  "A group of goats is called a tribe or a trip. 🐐👨‍👩‍👧‍👦",
+  "The average person will spend 92 days of their life on the toilet. 🚽⏳",
+  "The deepest point in the Earth's crust is the Kola Superdeep Borehole. 🌍🕳️",
+  "A group of foxes is called a skulk. 🦊 stealthy",
+  "The average person will spend 6 years of their life dreaming. 😴💭",
+  "The only animal that can't move its tongue is a crocodile. 🐊👅🚫",
+  "A group of geese is called a gaggle. 🦢 chatter",
+  "The average person will eat 35,000 cookies in their lifetime. 🍪😋",
+  "The highest recorded tsunami was over 1,700 feet tall. 🌊🌊",
+  "A group of leopards is called a leap. 🐆 прыжок",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The only city in the world that spans two continents is Istanbul. 🌉🌍",
+  "A group of badgers is called a cete. 🦡 group",
+  "The average person will consume 33,000 gallons of water in their lifetime. 💧🚰",
+  "The highest mountain in Africa is Mount Kilimanjaro. ⛰️🦁",
+  "A group of ants is called a colony. 🐜🏡",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The only animal with four knees is the elephant. 🐘🦵🦵🦵🦵",
+  "A group of bats is called a colony. 🦇🏡",
+  "The average person will spend 6 months of their life waiting for red lights to change. 🚦⏳",
+  "The largest ever recorded hailstones were the size of softballs. ⚾🧊",
+  "A group of bees is called a swarm. 🐝 buzzing",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only mammal that can fly backward is the bat. 🦇⏪",
+  "A group of doves is called a flight or a pity. 🕊️✈️😢",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest living structure on Earth is the Great Barrier Reef. 🐠🌍",
+  "A group of fish is called a school or a shoal. 🐟👨‍🎓",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The only sound a camel makes is a groan. 🐪😩",
+  "A group of kangaroos is called a mob. 🦘👨‍👩‍👧‍👦",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The longest scientific name for an animal is 195,830 letters long. 🔬🔤",
+  "A group of rabbits is called a colony or a warren. 🐇🏡",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only place in the world where you can find pink dolphins is the Amazon River. 🐬💖",
+  "A group of rattlesnakes is called a rhumba. 🐍💃",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The shortest distance between two points on Earth is a straight line. 📏🌍",
+  "A group of seagulls is called a colony. 🐦🏡",
+  "The average person will consume 100 pounds of chocolate in their lifetime. 🍫😋",
+  "The only planet in our solar system that is named after a female deity is Venus. 🪐♀️",
+  "A group of sharks is called a shiver. 🦈🥶",
+  "The average person will spend 6 years of their life dreaming. 😴💭",
+  "The Earth's magnetic field is reversing. 🧲🔄",
+  "A group of tigers is called an ambush or a streak. 🐅 lurking",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The largest recorded earthquake was a magnitude of 9.5. 🌎💥",
+  "A group of turkeys is called a rafter or a gang. 🦃🧑‍🤝‍🧑",
+  "The average person will spend 10 years of their life watching TV. 📺⏳",
+  "The only food that never goes bad is honey. 🍯",
+  "A group of vultures is called a wake. 🦅 funeral",
+  "The average person will consume 500 pounds of candy in their lifetime. 🍬😋",
+  "The world's largest flower is the Rafflesia arnoldii, which can grow up to 3 feet across. 🌸📏",
+  "A group of whales is called a pod or a gam. 🐋🚢",
+  "The average person will spend 38 days of their life showering. 🚿⏳",
+  "The Earth's atmosphere extends to about 10,000 kilometers (6,200 miles) into space. 🌌🌍",
+  "A group of wolves is called a pack. 🐺👨‍👩‍👧‍👦",
+  "The average person will consume 12 pounds of potato chips in their lifetime. 🥔🍟",
+  "The only US state that can be typed using only one row of the keyboard is Alaska. 🇺🇸⌨️",
+  "A group of zebras is called a dazzle or a zeal. 🦓✨",
+  "The average person will spend 92 days of their life on the toilet. 🚽⏳",
+  "The world's oldest piece of chewing gum is 9,000 years old. 🍬🕰️",
+  "A group of owls is called a parliament. 🦉🏛️",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only letter that doesn't appear in any US state name is Q. 🇺🇸🔤",
+  "A group of peacocks is called a muster or an ostentation. 🦚 showy",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The highest temperature ever recorded on Earth was 134°F (56.7°C). 🥵🏜️",
+  "A group of squids is called a squad. 🦑 👮‍♂️",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest snowflake ever recorded was 15 inches wide. ❄️📏",
+  "A group of rhinos is called a crash. 💥🦏",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The Earth's core is as hot as the sun's surface. 🌋☀️",
+  "A group of badgers is called a cete. 🦡 group",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only bird that can truly fly backward is the hummingbird. 🐦‍💫⏪",
+  "A group of wild boars is called a sounder. 🐗 🔊",
+  "The average person will consume 100,000 calories from pizza in their lifetime. 🍕😋",
+  "The longest river in the world is the Nile River. 🏞️",
+  "A group of giraffes is called a tower. 🦒🗼",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The highest mountain in Africa is Mount Kilimanjaro. ⛰️🦁",
+  "A group of ants is called a colony. 🐜🏡",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The only mammal that lays eggs is the echidna and platypus. 🥚🦔🦆",
+  "A group of bats is called a colony. 🦇🏡",
+  "The average person will spend 6 months of their life waiting for red lights to change. 🚦⏳",
+  "The largest ever recorded hailstones were the size of softballs. ⚾🧊",
+  "A group of bees is called a swarm. 🐝 buzzing",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only mammal that can truly fly is the bat. 🦇✈️",
+  "A group of doves is called a flight or a pity. 🕊️✈️😢",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest living structure on Earth is the Great Barrier Reef. 🐠🌍",
+  "A group of fish is called a school or a shoal. 🐟👨‍🎓",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The only sound a camel makes is a groan. 🐪😩",
+  "A group of kangaroos is called a mob. 🦘👨‍👩‍👧‍👦",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The longest scientific name for an animal is 195,830 letters long. 🔬🔤",
+  "A group of rabbits is called a colony or a warren. 🐇🏡",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only place in the world where you can find pink dolphins is the Amazon River. 🐬💖",
+  "A group of rattlesnakes is called a rhumba. 🐍💃",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The shortest distance between two points on Earth is a straight line. 📏🌍",
+  "A group of seagulls is called a colony. 🐦🏡",
+  "The average person will consume 100 pounds of chocolate in their lifetime. 🍫😋",
+  "The only planet in our solar system that is named after a female deity is Venus. 🪐♀️",
+  "A group of sharks is called a shiver. 🦈🥶",
+  "The average person will spend 6 years of their life dreaming. 😴💭",
+  "The Earth's magnetic field is reversing. 🧲🔄",
+  "A group of tigers is called an ambush or a streak. 🐅 lurking",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The largest recorded earthquake was a magnitude of 9.5. 🌎💥",
+  "A group of turkeys is called a rafter or a gang. 🦃🧑‍🤝‍🧑",
+  "The average person will spend 10 years of their life watching TV. 📺⏳",
+  "The only food that never goes bad is honey. 🍯",
+  "A group of vultures is called a wake. 🦅 funeral",
+  "The average person will consume 500 pounds of candy in their lifetime. 🍬😋",
+  "The world's largest flower is the Rafflesia arnoldii, which can grow up to 3 feet across. 🌸📏",
+  "A group of whales is called a pod or a gam. 🐋🚢",
+  "The average person will spend 38 days of their life showering. 🚿⏳",
+  "The Earth's atmosphere extends to about 10,000 kilometers (6,200 miles) into space. 🌌🌍",
+  "A group of wolves is called a pack. 🐺👨‍👩‍👧‍👦",
+  "The average person will consume 12 pounds of potato chips in their lifetime. 🥔🍟",
+  "The only US state that can be typed using only one row of the keyboard is Alaska. 🇺🇸⌨️",
+  "A group of zebras is called a dazzle or a zeal. 🦓✨",
+  "The average person will spend 92 days of their life on the toilet. 🚽⏳",
+  "The world's oldest piece of chewing gum is 9,000 years old. 🍬🕰️",
+  "A group of owls is called a parliament. 🦉🏛️",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only letter that doesn't appear in any US state name is Q. 🇺🇸🔤",
+  "A group of peacocks is called a muster or an ostentation. 🦚 showy",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The highest temperature ever recorded on Earth was 134°F (56.7°C). 🥵🏜️",
+  "A group of squids is called a squad. 🦑 👮‍♂️",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest snowflake ever recorded was 15 inches wide. ❄️📏",
+  "A group of rhinos is called a crash. 💥🦏",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The Earth's core is as hot as the sun's surface. 🌋☀️",
+  "A group of badgers is called a cete. 🦡 group",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only bird that can truly fly backward is the hummingbird. 🐦‍💫⏪",
+  "A group of wild boars is called a sounder. 🐗 🔊",
+  "The average person will consume 100,000 calories from pizza in their lifetime. 🍕😋",
+  "The longest river in the world is the Nile River. 🏞️",
+  "A group of giraffes is called a tower. 🦒🗼",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The highest mountain in Africa is Mount Kilimanjaro. ⛰️🦁",
+  "A group of ants is called a colony. 🐜🏡",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The only mammal that lays eggs is the echidna and platypus. 🥚🦔🦆",
+  "A group of bats is called a colony. 🦇🏡",
+  "The average person will spend 6 months of their life waiting for red lights to change. 🚦⏳",
+  "The largest ever recorded hailstones were the size of softballs. ⚾🧊",
+  "A group of bees is called a swarm. 🐝 buzzing",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only mammal that can truly fly is the bat. 🦇✈️",
+  "A group of doves is called a flight or a pity. 🕊️✈️😢",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest living structure on Earth is the Great Barrier Reef. 🐠🌍",
+  "A group of fish is called a school or a shoal. 🐟👨‍🎓",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The only sound a camel makes is a groan. 🐪😩",
+  "A group of kangaroos is called a mob. 🦘👨‍👩‍👧‍👦",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The longest scientific name for an animal is 195,830 letters long. 🔬🔤",
+  "A group of rabbits is called a colony or a warren. 🐇🏡",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only place in the world where you can find pink dolphins is the Amazon River. 🐬💖",
+  "A group of rattlesnakes is called a rhumba. 🐍💃",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The shortest distance between two points on Earth is a straight line. 📏🌍",
+  "A group of seagulls is called a colony. 🐦🏡",
+  "The average person will consume 100 pounds of chocolate in their lifetime. 🍫😋",
+  "The only planet in our solar system that is named after a female deity is Venus. 🪐♀️",
+  "A group of sharks is called a shiver. 🦈🥶",
+  "The average person will spend 6 years of their life dreaming. 😴💭",
+  "The Earth's magnetic field is reversing. 🧲🔄",
+  "A group of tigers is called an ambush or a streak. 🐅 lurking",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The largest recorded earthquake was a magnitude of 9.5. 🌎💥",
+  "A group of turkeys is called a rafter or a gang. 🦃🧑‍🤝‍🧑",
+  "The average person will spend 10 years of their life watching TV. 📺⏳",
+  "The only food that never goes bad is honey. 🍯",
+  "A group of vultures is called a wake. 🦅 funeral",
+  "The average person will consume 500 pounds of candy in their lifetime. 🍬😋",
+  "The world's largest flower is the Rafflesia arnoldii, which can grow up to 3 feet across. 🌸📏",
+  "A group of whales is called a pod or a gam. 🐋🚢",
+  "The average person will spend 38 days of their life showering. 🚿⏳",
+  "The Earth's atmosphere extends to about 10,000 kilometers (6,200 miles) into space. 🌌🌍",
+  "A group of wolves is called a pack. 🐺👨‍👩‍👧‍👦",
+  "The average person will consume 12 pounds of potato chips in their lifetime. 🥔🍟",
+  "The only US state that can be typed using only one row of the keyboard is Alaska. 🇺🇸⌨️",
+  "A group of zebras is called a dazzle or a zeal. 🦓✨",
+  "The average person will spend 92 days of their life on the toilet. 🚽⏳",
+  "The world's oldest piece of chewing gum is 9,000 years old. 🍬🕰️",
+  "A group of owls is called a parliament. 🦉🏛️",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only letter that doesn't appear in any US state name is Q. 🇺🇸🔤",
+  "A group of peacocks is called a muster or an ostentation. 🦚 showy",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The highest temperature ever recorded on Earth was 134°F (56.7°C). 🥵🏜️",
+  "A group of squids is called a squad. 🦑 👮‍♂️",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest snowflake ever recorded was 15 inches wide. ❄️📏",
+  "A group of rhinos is called a crash. 💥🦏",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The Earth's core is as hot as the sun's surface. 🌋☀️",
+  "A group of badgers is called a cete. 🦡 group",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only bird that can truly fly backward is the hummingbird. 🐦‍💫⏪",
+  "A group of wild boars is called a sounder. 🐗 🔊",
+  "The average person will consume 100,000 calories from pizza in their lifetime. 🍕😋",
+  "The longest river in the world is the Nile River. 🏞️",
+  "A group of giraffes is called a tower. 🦒🗼",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The highest mountain in Africa is Mount Kilimanjaro. ⛰️🦁",
+  "A group of ants is called a colony. 🐜🏡",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The only mammal that lays eggs is the echidna and platypus. 🥚🦔🦆",
+  "A group of bats is called a colony. 🦇🏡",
+  "The average person will spend 6 months of their life waiting for red lights to change. 🚦⏳",
+  "The largest ever recorded hailstones were the size of softballs. ⚾🧊",
+  "A group of bees is called a swarm. 🐝 buzzing",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only mammal that can truly fly is the bat. 🦇✈️",
+  "A group of doves is called a flight or a pity. 🕊️✈️😢",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest living structure on Earth is the Great Barrier Reef. 🐠🌍",
+  "A group of fish is called a school or a shoal. 🐟👨‍🎓",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The only sound a camel makes is a groan. 🐪😩",
+  "A group of kangaroos is called a mob. 🦘👨‍👩‍👧‍👦",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The longest scientific name for an animal is 195,830 letters long. 🔬🔤",
+  "A group of rabbits is called a colony or a warren. 🐇🏡",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only place in the world where you can find pink dolphins is the Amazon River. 🐬💖",
+  "A group of rattlesnakes is called a rhumba. 🐍💃",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The shortest distance between two points on Earth is a straight line. 📏🌍",
+  "A group of seagulls is called a colony. 🐦🏡",
+  "The average person will consume 100 pounds of chocolate in their lifetime. 🍫😋",
+  "The only planet in our solar system that is named after a female deity is Venus. 🪐♀️",
+  "A group of sharks is called a shiver. 🦈🥶",
+  "The average person will spend 6 years of their life dreaming. 😴💭",
+  "The Earth's magnetic field is reversing. 🧲🔄",
+  "A group of tigers is called an ambush or a streak. 🐅 lurking",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The largest recorded earthquake was a magnitude of 9.5. 🌎💥",
+  "A group of turkeys is called a rafter or a gang. 🦃🧑‍🤝‍🧑",
+  "The average person will spend 10 years of their life watching TV. 📺⏳",
+  "The only food that never goes bad is honey. 🍯",
+  "A group of vultures is called a wake. 🦅 funeral",
+  "The average person will consume 500 pounds of candy in their lifetime. 🍬😋",
+  "The world's largest flower is the Rafflesia arnoldii, which can grow up to 3 feet across. 🌸📏",
+  "A group of whales is called a pod or a gam. 🐋🚢",
+  "The average person will spend 38 days of their life showering. 🚿⏳",
+  "The Earth's atmosphere extends to about 10,000 kilometers (6,200 miles) into space. 🌌🌍",
+  "A group of wolves is called a pack. 🐺👨‍👩‍👧‍👦",
+  "The average person will consume 12 pounds of potato chips in their lifetime. 🥔🍟",
+  "The only US state that can be typed using only one row of the keyboard is Alaska. 🇺🇸⌨️",
+  "A group of zebras is called a dazzle or a zeal. 🦓✨",
+  "The average person will spend 92 days of their life on the toilet. 🚽⏳",
+  "The world's oldest piece of chewing gum is 9,000 years old. 🍬🕰️",
+  "A group of owls is called a parliament. 🦉🏛️",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only letter that doesn't appear in any US state name is Q. 🇺🇸🔤",
+  "A group of peacocks is called a muster or an ostentation. 🦚 showy",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The highest temperature ever recorded on Earth was 134°F (56.7°C). 🥵🏜️",
+  "A group of squids is called a squad. 🦑 👮‍♂️",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest snowflake ever recorded was 15 inches wide. ❄️📏",
+  "A group of rhinos is called a crash. 💥🦏",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The Earth's core is as hot as the sun's surface. 🌋☀️",
+  "A group of badgers is called a cete. 🦡 group",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only bird that can truly fly backward is the hummingbird. 🐦‍💫⏪",
+  "A group of wild boars is called a sounder. 🐗 🔊",
+  "The average person will consume 100,000 calories from pizza in their lifetime. 🍕😋",
+  "The longest river in the world is the Nile River. 🏞️",
+  "A group of giraffes is called a tower. 🦒🗼",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The highest mountain in Africa is Mount Kilimanjaro. ⛰️🦁",
+  "A group of ants is called a colony. 🐜🏡",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The only mammal that lays eggs is the echidna and platypus. 🥚🦔🦆",
+  "A group of bats is called a colony. 🦇🏡",
+  "The average person will spend 6 months of their life waiting for red lights to change. 🚦⏳",
+  "The largest ever recorded hailstones were the size of softballs. ⚾🧊",
+  "A group of bees is called a swarm. 🐝 buzzing",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only mammal that can truly fly is the bat. 🦇✈️",
+  "A group of doves is called a flight or a pity. 🕊️✈️😢",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest living structure on Earth is the Great Barrier Reef. 🐠🌍",
+  "A group of fish is called a school or a shoal. 🐟👨‍🎓",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The only sound a camel makes is a groan. 🐪😩",
+  "A group of kangaroos is called a mob. 🦘👨‍👩‍👧‍👦",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The longest scientific name for an animal is 195,830 letters long. 🔬🔤",
+  "A group of rabbits is called a colony or a warren. 🐇🏡",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only place in the world where you can find pink dolphins is the Amazon River. 🐬💖",
+  "A group of rattlesnakes is called a rhumba. 🐍💃",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The shortest distance between two points on Earth is a straight line. 📏🌍",
+  "A group of seagulls is called a colony. 🐦🏡",
+  "The average person will consume 100 pounds of chocolate in their lifetime. 🍫😋",
+  "The only planet in our solar system that is named after a female deity is Venus. 🪐♀️",
+  "A group of sharks is called a shiver. 🦈🥶",
+  "The average person will spend 6 years of their life dreaming. 😴💭",
+  "The Earth's magnetic field is reversing. 🧲🔄",
+  "A group of tigers is called an ambush or a streak. 🐅 lurking",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The largest recorded earthquake was a magnitude of 9.5. 🌎💥",
+  "A group of turkeys is called a rafter or a gang. 🦃🧑‍🤝‍🧑",
+  "The average person will spend 10 years of their life watching TV. 📺⏳",
+  "The only food that never goes bad is honey. 🍯",
+  "A group of vultures is called a wake. 🦅 funeral",
+  "The average person will consume 500 pounds of candy in their lifetime. 🍬😋",
+  "The world's largest flower is the Rafflesia arnoldii, which can grow up to 3 feet across. 🌸📏",
+  "A group of whales is called a pod or a gam. 🐋🚢",
+  "The average person will spend 38 days of their life showering. 🚿⏳",
+  "The Earth's atmosphere extends to about 10,000 kilometers (6,200 miles) into space. 🌌🌍",
+  "A group of wolves is called a pack. 🐺👨‍👩‍👧‍👦",
+  "The average person will consume 12 pounds of potato chips in their lifetime. 🥔🍟",
+  "The only US state that can be typed using only one row of the keyboard is Alaska. 🇺🇸⌨️",
+  "A group of zebras is called a dazzle or a zeal. 🦓✨",
+  "The average person will spend 92 days of their life on the toilet. 🚽⏳",
+  "The world's oldest piece of chewing gum is 9,000 years old. 🍬🕰️",
+  "A group of owls is called a parliament. 🦉🏛️",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only letter that doesn't appear in any US state name is Q. 🇺🇸🔤",
+  "A group of peacocks is called a muster or an ostentation. 🦚 showy",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The highest temperature ever recorded on Earth was 134°F (56.7°C). 🥵🏜️",
+  "A group of squids is called a squad. 🦑 👮‍♂️",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest snowflake ever recorded was 15 inches wide. ❄️📏",
+  "A group of rhinos is called a crash. 💥🦏",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The Earth's core is as hot as the sun's surface. 🌋☀️",
+  "A group of badgers is called a cete. 🦡 group",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only bird that can truly fly backward is the hummingbird. 🐦‍💫⏪",
+  "A group of wild boars is called a sounder. 🐗 🔊",
+  "The average person will consume 100,000 calories from pizza in their lifetime. 🍕😋",
+  "The longest river in the world is the Nile River. 🏞️",
+  "A group of giraffes is called a tower. 🦒🗼",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The highest mountain in Africa is Mount Kilimanjaro. ⛰️🦁",
+  "A group of ants is called a colony. 🐜🏡",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The only mammal that lays eggs is the echidna and platypus. 🥚🦔🦆",
+  "A group of bats is called a colony. 🦇🏡",
+  "The average person will spend 6 months of their life waiting for red lights to change. 🚦⏳",
+  "The largest ever recorded hailstones were the size of softballs. ⚾🧊",
+  "A group of bees is called a swarm. 🐝 buzzing",
+  "The average person will spend 3 years of their life eating. 🍽️⏳",
+  "The only mammal that can truly fly is the bat. 🦇✈️",
+  "A group of doves is called a flight or a pity. 🕊️✈️😢",
+  "The average person will consume 10 pounds of spiders in their lifetime. 🕷️😋",
+  "The largest living structure on Earth is the Great Barrier Reef. 🐠🌍",
+  "A group of fish is called a school or a shoal. 🐟👨‍🎓",
+  "The average person will spend 1 year of their life looking for lost items. 🕵️‍♀️🔍",
+  "The only sound a camel makes is a groan. 🐪😩",
+  "A group of kangaroos is called a mob. 🦘👨‍👩‍👧‍👦",
+  "The average person will spend 6 months of their life in traffic. 🚗🚦",
+  "The longest scientific name for an animal is 195,830 letters long. 🔬🔤",
+  "A group of rabbits is called a colony or a warren. 🐇🏡",
+  "The average person will spend 1 year of their life trying on clothes. 👕👖",
+  "The only place in the world where you can find pink dolphins is the Amazon River. 🐬💖",
+  "A group of rattlesnakes is called a rhumba. 🐍💃",
+  "The average person will spend 25 years asleep. 😴🗓️",
+  "The shortest distance between two points on Earth is a straight line. 📏🌍",
+  "A group of seagulls is called a colony. 🐦🏡",
+  "The average person will consume 100 pounds of chocolate in their lifetime. 🍫😋",
+  "The only planet in our solar system that is named after a female deity is Venus. 🪐♀️",
+  "A group of sharks is called a shiver. 🦈🥶",
+  "The average person will spend 6 years of their life dreaming. 😴💭",
+  "The Earth's magnetic field is reversing. 🧲🔄",
+  "A group of tigers is called an ambush or a streak. 🐅 lurking",
+  "The average person will spend 2 weeks of their life kissing. 💋⏳",
+  "The largest recorded earthquake was a magnitude of 9.5. 🌎💥",
+  "A group of turkeys is called a rafter or a gang. 🦃🧑‍🤝‍🧑",
+  "The average person will spend 10 years of their life watching TV. 📺⏳",
+  "The only food that never goes bad is honey. 🍯",
+  "A group of vultures is called a wake. 🦅 funeral",
+  "The average person will consume 500 pounds of candy in their lifetime. 🍬😋",
+  "The world's largest flower is the Rafflesia arnoldii, which can grow up to 3 feet across. 🌸📏",
+  "A group of whales is called a pod or a gam. 🐋🚢",
+  "The average person will spend 38 days of their life showering. 🚿⏳",
+  "The Earth's atmosphere extends to about 10,000 kilometers (6,200 miles) into space. 🌌🌍",
+  "A group of wolves is called a pack. 🐺👨‍👩‍👧‍👦",
+  "The average person will consume 12 pounds of potato chips in their lifetime. 🥔🍟",
+  "The only US state that can be typed using only one row of the keyboard is Alaska. 🇺🇸⌨️",
+  "A group of zebras is called a dazzle or a zeal. 🦓✨",
+  "The average person will spend 92 days of their life on the toilet. 🚽⏳"
+];
+    function displayRandomFact() {
+        randomFactDisplay.textContent = facts[Math.floor(Math.random() * facts.length)];
+    }
+    newFactBtn.addEventListener('click', displayRandomFact);
+    displayRandomFact();
+
+    // --- Countdown Timer ---
+    const countdownEventNameInput = getById('countdownEventName');
+    const countdownDateInput = getById('countdownDate');
+    const startCountdownBtn = getById('startCountdownBtn');
+    const countdownDisplay = getById('countdownDisplay');
+    let countdownInterval;
+    let countdownTarget = loadData('countdownTarget', null);
+
+    function updateCountdownDisplay() {
+        if (!countdownTarget || !countdownTarget.date) {
+            countdownDisplay.textContent = "Set a date to countdown!";
+            return;
+        }
+        const targetDate = new Date(countdownTarget.date).getTime();
+        const now = new Date().getTime();
+        const difference = targetDate - now;
+
+        if (difference <= 0) {
+            countdownDisplay.textContent = `${countdownTarget.name || 'Event'} has arrived!`;
+            clearInterval(countdownInterval);
+            return;
+        }
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        countdownDisplay.innerHTML = `<strong>${countdownTarget.name || 'Countdown'}:</strong><br>${days}d ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    startCountdownBtn.addEventListener('click', () => {
+        const eventName = countdownEventNameInput.value.trim();
+        const dateValue = countdownDateInput.value;
+        if (dateValue) {
+            countdownTarget = { name: eventName, date: dateValue };
+            saveData('countdownTarget', countdownTarget);
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(updateCountdownDisplay, 1000);
+            updateCountdownDisplay();
+        }
+    });
+    
+    if (countdownTarget && countdownTarget.date) { // Load saved countdown
+        countdownEventNameInput.value = countdownTarget.name || '';
+        countdownDateInput.value = countdownTarget.date.substring(0,10); //YYYY-MM-DD
+        countdownInterval = setInterval(updateCountdownDisplay, 1000);
+    }
+    updateCountdownDisplay(); // Initial call
+
+    // --- Habit Tracker ---
+    const habitInput = getById('habitInput');
+    const addHabitBtn = getById('addHabitBtn');
+    const habitListContainer = getById('habitListContainer');
+    let habits = loadData('habits', []); // [{name: "Exercise", completedToday: false, lastCompleted: "YYYY-MM-DD"}]
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    function renderHabits() {
+        habitListContainer.innerHTML = "";
+        habits.forEach((habit, index) => {
+            // Reset completion if it's a new day
+            if (habit.lastCompleted !== todayStr) {
+                habit.completedToday = false;
+            }
+
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('habit-item');
+            if (habit.completedToday) itemDiv.classList.add('completed');
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = habit.completedToday;
+            checkbox.onchange = () => toggleHabit(index);
+
+            const span = document.createElement('span');
+            span.textContent = habit.name;
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.56 0c.34-.059.68-.111 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>';
+            deleteBtn.classList.add('delete-btn', 'ml-2');
+            deleteBtn.onclick = () => deleteHabit(index);
+
+            itemDiv.appendChild(checkbox);
+            itemDiv.appendChild(span);
+            itemDiv.appendChild(deleteBtn);
+            habitListContainer.appendChild(itemDiv);
+        });
+        saveData('habits', habits); // Save potentially updated lastCompleted status
+    }
+    function addHabit() {
+        const name = habitInput.value.trim();
+        if (name && !habits.find(h => h.name === name)) {
+            habits.push({ name, completedToday: false, lastCompleted: null });
+            saveData('habits', habits);
+            renderHabits();
+            habitInput.value = "";
+        }
+    }
+    addHabitBtn.addEventListener('click', addHabit);
+    habitInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addHabit(); });
+
+    function toggleHabit(index) {
+        habits[index].completedToday = !habits[index].completedToday;
+        if (habits[index].completedToday) {
+            habits[index].lastCompleted = todayStr;
+        } else {
+            // If unchecking, it implies it wasn't done today or user changed mind.
+            // lastCompleted could be set to null or previous day if tracking streaks, but for simple daily, this is fine.
+        }
+        saveData('habits', habits);
+        renderHabits();
+    }
+    function deleteHabit(index) {
+        habits.splice(index, 1);
+        saveData('habits', habits);
+        renderHabits();
+    }
+    renderHabits();
+
+    // --- Unit Converter ---
+    const converterTypeSelect = getById('converterType');
+    const unitInput = getById('unitInput');
+    const unitOutput = getById('unitOutput');
+
+    function convertUnits() {
+        const type = converterTypeSelect.value;
+        const value = parseFloat(unitInput.value);
+        if (isNaN(value)) {
+            unitOutput.textContent = "";
+            return;
+        }
+        let result = "";
+        if (type === 'temp') { // Celsius to Fahrenheit and vice-versa
+            const cToF = (value * 9/5) + 32;
+            const fToC = (value - 32) * 5/9;
+            result = `${value}°C = ${cToF.toFixed(2)}°F  |  ${value}°F = ${fToC.toFixed(2)}°C`;
+        } else if (type === 'weight') { // Kilograms to Pounds and vice-versa
+            const kgToLb = value * 2.20462;
+            const lbToKg = value / 2.20462;
+            result = `${value} kg = ${kgToLb.toFixed(2)} lb  |  ${value} lb = ${lbToKg.toFixed(2)} kg`;
+        }
+        unitOutput.textContent = result;
+    }
+    converterTypeSelect.addEventListener('change', convertUnits);
+    unitInput.addEventListener('input', convertUnits);
+
+
+    console.log("Enhanced New Tab Page Loaded!");
+    </script>
+</body>
+</html>
